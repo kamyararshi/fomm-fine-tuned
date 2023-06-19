@@ -65,16 +65,25 @@ class Logger:
             except:
                print ('No discriminator in the state-dict. Dicriminator will be randomly initialized')
         if optimizer_generator is not None:
-            optimizer_generator.load_state_dict(checkpoint['optimizer_generator'])
+            try:
+                optimizer_generator.load_state_dict(checkpoint['optimizer_generator'])
+            except:
+                print("No optimizer available in state_dict. Will be initialized")
         if optimizer_discriminator is not None:
             try:
                 optimizer_discriminator.load_state_dict(checkpoint['optimizer_discriminator'])
-            except RuntimeError as e:
+            except KeyError as e:
                 print ('No discriminator optimizer in the state-dict. Optimizer will be not initialized')
         if optimizer_kp_detector is not None:
-            optimizer_kp_detector.load_state_dict(checkpoint['optimizer_kp_detector'])
+            try:
+                optimizer_kp_detector.load_state_dict(checkpoint['optimizer_kp_detector'])
+            except:
+                print("optimizer_kp_detector will be initialized latter")
 
-        return checkpoint['epoch']
+        try:
+            return checkpoint['epoch']
+        except:
+            return 0 
 
     def __enter__(self):
         return self

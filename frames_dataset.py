@@ -100,7 +100,7 @@ class FramesDataset(Dataset):
     def __getitem__(self, idx):
         if self.is_train and self.id_sampling:
             name = self.videos[idx]
-            path = np.random.choice(glob.glob(os.path.join(self.root_dir, name + '*.mp4')))
+            path = np.random.choice(glob.glob(os.path.join(self.root_dir, name )))
         else:
             name = self.videos[idx]
             path = os.path.join(self.root_dir, name)
