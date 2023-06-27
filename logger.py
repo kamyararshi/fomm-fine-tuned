@@ -65,14 +65,20 @@ class Logger:
             except:
                print ('No discriminator in the state-dict. Dicriminator will be randomly initialized')
         if optimizer_generator is not None:
-            optimizer_generator.load_state_dict(checkpoint['optimizer_generator'])
+            try:
+                optimizer_generator.load_state_dict(checkpoint['optimizer_generator'])
+            except:
+                print ('No optim_gen in the state-dict. Optim will be randomly initialized')
         if optimizer_discriminator is not None:
             try:
                 optimizer_discriminator.load_state_dict(checkpoint['optimizer_discriminator'])
             except RuntimeError as e:
                 print ('No discriminator optimizer in the state-dict. Optimizer will be not initialized')
         if optimizer_kp_detector is not None:
-            optimizer_kp_detector.load_state_dict(checkpoint['optimizer_kp_detector'])
+            try:
+                optimizer_kp_detector.load_state_dict(checkpoint['optimizer_kp_detector'])
+            except:
+                print ('No KP_detector in the state-dict. KP_detector will be randomly initialized')
 
         return checkpoint['epoch']
 
@@ -111,7 +117,7 @@ class Visualizer:
         kp_array = spatial_size * (kp_array + 1) / 2
         num_kp = kp_array.shape[0]
         for kp_ind, kp in enumerate(kp_array):
-            rr, cc = disk(kp[1], kp[0], self.kp_size, shape=image.shape[:2])
+            rr, cc = disk((kp[1], kp[0]), self.kp_size, shape=image.shape[:2])
             image[rr, cc] = np.array(self.colormap(kp_ind / num_kp))[:3]
         return image
 

@@ -1,4 +1,4 @@
-from tqdm import trange
+from tqdm import trange, tqdm
 import torch
 
 from torch.utils.data import DataLoader
@@ -11,6 +11,8 @@ from torch.optim.lr_scheduler import MultiStepLR
 from sync_batchnorm import DataParallelWithCallback
 
 from frames_dataset import DatasetRepeater
+import warnings
+warnings.filterwarnings('ignore')
 
 
 def train(config, generator, discriminator, kp_detector, checkpoint, log_dir, dataset, device_ids):
@@ -21,9 +23,12 @@ def train(config, generator, discriminator, kp_detector, checkpoint, log_dir, da
     optimizer_kp_detector = torch.optim.Adam(kp_detector.parameters(), lr=train_params['lr_kp_detector'], betas=(0.5, 0.999))
 
     if checkpoint is not None:
-        start_epoch = Logger.load_cpk(checkpoint, generator, discriminator, kp_detector,
-                                      optimizer_generator, optimizer_discriminator,
-                                      None if train_params['lr_kp_detector'] == 0 else optimizer_kp_detector)
+        try:
+            start_epoch = Logger.load_cpk(checkpoint, generator, discriminator, kp_detector,
+                                        optimizer_generator, optimizer_discriminator,
+                                        None if train_params['lr_kp_detector'] == 0 else optimizer_kp_detector)
+        except:
+            start_epoch = 0
     else:
         start_epoch = 0
 
@@ -47,7 +52,7 @@ def train(config, generator, discriminator, kp_detector, checkpoint, log_dir, da
 
     with Logger(log_dir=log_dir, visualizer_params=config['visualizer_params'], checkpoint_freq=train_params['checkpoint_freq']) as logger:
         for epoch in trange(start_epoch, train_params['num_epochs']):
-            for x in dataloader:
+            for x in tqdm(dataloader):
                 losses_generator, generated = generator_full(x)
 
                 loss_values = [val.mean() for val in losses_generator.values()]
@@ -85,3 +90,4 @@ def train(config, generator, discriminator, kp_detector, checkpoint, log_dir, da
                                      'optimizer_generator': optimizer_generator,
                                      'optimizer_discriminator': optimizer_discriminator,
                                      'optimizer_kp_detector': optimizer_kp_detector}, inp=x, out=generated)
+    print("Training Done!")
